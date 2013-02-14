@@ -1,0 +1,55 @@
+<html>
+
+<head><title>ORGANIK - ** bytestream storage format **</title></head>
+
+<body bgcolor=#99ccff>
+
+<table width="100%" border=0 cellpadding=0 cellspacing=0>
+<tr>
+<td valign=top><img width=40 border=0 src=img/smallogo.jpg alt=""></td>
+<td>
+<h2>Bytestream</h2>
+<h4>Revision: 2000.03.13 01:13 GMT+5</h4>
+<br>
+Bytestream is used for representing tracks data within a file. It is much like
+MIDI stream.<br>
+<br>
+Bytestream consists of blocks corresonding to specific song time. Each block is
+called EVENT and has the following structure:<br>
+<br>
+<pre>
+EVENT {
+   delta_time: 16;
+   notes {
+      more_notes: 1;
+      note      : 7;
+      commands {
+         more_commands: 1;
+         command      : 8;
+         parambytes   : 7;
+         params       : 8*parambytes;
+      } until no more_commands;
+   } until no more_notes;
+}
+</pre>
+I see it pretty self-explanatory, but for those who didn't get the idea here's a brief:<br>
+field sizes are in bits.<br>
+<b>delta_time</b> is amount of ticks between previous and this EVENTs.<br>
+<b>more_notes</b> set means that there are more notes within this EVENT.<br>
+<b>note</b> is note number ranging from 0 thru 126 for C-0..F#10 and 127 indicates so-called
+"global note" which is used in conjuction with commands that relate to global track effects.<br>
+<b>more_commands</b> set means that there are more commands for given note.<br>
+<b>command</b> is command code (see below).<br>
+<b>parambytes</b> is amount of bytes taken by command parameters. This number may vary
+depending on type of command and if there are some arguments omitted.<br>
+<b>params</b> are parameter bytes.<br>
+Size of each parameter in bytes depends on type of command and parameters it takes.<br>
+<br>
+</td></tr></table>
+<p align=center>
+<a href="http://www.most.kurgan.ru"><img src=img/most88x31.gif width=88 height=31 border=0 alt="MOST"></a>
+<A href="http://sourceforge.net"><IMG src="http://sourceforge.net/sflogo.php?group_id=9685" width="88" height="31" border="0" alt="SourceForge Logo"></A>
+<br>
+<img src=img/delim.jpg width=640 height=16 border=0 alt=""></p>
+</body>
+</html>

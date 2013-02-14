@@ -1,0 +1,107 @@
+<html>
+<head><title>ORGANIK - ** terminology **</title></head>
+
+<body bgcolor=#99ccff>
+<table width="100%" border=0 cellpadding=0 cellspacing=0>
+<tr>
+<td valign=top><img width=40 border=0 src=img/smallogo.jpg alt=""></td>
+<td>
+<h2>Terminology and designations</h2>
+<h4>Revision: 2000.03.18 19:10 GMT+5</h4>
+<br>
+This section describes entities used to represent music inside a tracker/player
+and on appropriate media. It also uncovers some problems arising when using
+traditional trackers (especially in comparison with professional soft/hard).<br>
+<br>
+
+<table width="100%" cellpadding=2 cellspacing=0 border=0>
+<tr>
+   <td bgcolor=#A0A0F0><a name="tempo"></a>
+   Tempo: ticks, tacts and stamps.
+   </td>
+</tr>
+<tr><td>
+Tempo is measured in BPM.
+
+In Organik, tick represents a smallest possible time unit (TU). Its duration is
+1/250th of a second. All internal calculations regarding time intervals are
+carried out upon this smallest time unit.<br>
+Ticks are grouped in tacts. Tact is a tempo-dependent TU. It is used for notes
+and tracks operations, since this is measure of time from user's point of view.
+For example, intervals between notes are measured in tacts.
+Number of ticks in one tact is calculated as follows:
+/ate/
+Tacts are combined into stamps. Stamps are called "Speed" or "Beats per row" in
+older trackers. Since ticks and even tacts are too small to handle them, it is
+wise to group them into larger entities that are handy for user. Stamp defines
+number of smaller TUs within one TU that is easy to manipulate.
+Even then they are grouped into stamps exceptionally at user's desire. Size of
+stamp is tuneable and can be adjusted personally for any portion of the song
+that user composes.<br>
+<br>
+</tr></td>
+<tr>
+   <td bgcolor=#A0A0F0><a name="sample"></a>
+   Sample and sampel.
+   </td>
+</tr>
+<tr><td>
+Sample is a waveform composed of arbitrary sample amplitudes at some points.
+The more the number of points the better the sounding quality of the sample.
+Values at points are called sampels (thanks to Chris Dragan for inventing the
+word itself). Frequency at which sampels are recorded is called sampling
+frequency. According to Nyquist-Kotelnikov theorem, it should be at least two
+times bigger than highest frequency within sampling signal or signal loss
+(also known as quantisation hiss ####) will
+occur. Another important parameter is sampel resolution. Sampels may be
+8/16/32/64 bits, mono/stereo/quadro, integer/fixed/floating point.<br>
+<br>
+</tr></td>
+<tr>
+   <td bgcolor=#A0A0F0><a name="voiceparm"></a>
+   Voice parameters. Volume, pitch and position.
+   </td>
+</tr>
+<tr><td>
+<ul>
+<li>Volume.<br>
+    Volume is the loudness of the sample. Better say that its percent of
+    sample's maximal amplitude. Ranging from 0 to 100 percents it uses
+    logarithmic scale to implement better sound dynamics.<br>
+    Volume levels encoded in 16 bits is enough to represent dynamics range of
+    96dB in linear scale. This is most common amongst computer playback device,
+    but definetely not the best one. It is good to encode volume in 24 bits
+    with linear scale, thus giving dynamics range of XXXdB. This resolution is
+    supported in superb-quality FPU mixer, which uses 32 floating point sampels
+    and internal 64 bit processing to achieve best quality possible. Usual
+    mixers (int/MMX) use volume precision of 12 bits with logarithmic scale.
+    Ranges from 0 (not audible) through 4096 (100%).
+
+<li>Position.<br>
+    Position is a rather convenient replacement for panning in older trackers.
+    It now includes two parameters to specify position within 3D listener space
+    instead of simple panning.<br>Two dimensional - consists of two angles:
+    azimuth and elevation. Azimuth ranges from -x (left of listener)
+    through 0 (ahead of listener) through y (right of listener).
+    Elevation ranges from -y (behind listener) through -z (below listener)
+    through 0 (ahead of listener) through z (above listener) through
+    x (almost back behind listener). In actual player position can be
+    handled either as panning (elevation ignored) or taking into account
+    sample phase shifts resulting from the position (best with headphones).
+    Some kind of surround-like interpretation may also result from position.
+
+<li>Pitch.<br>
+    Between each two subsequent notes there are 128
+    frequency levels. These levels are called pitch. The actual note frequency
+    is calculated from the following formula:<br>
+    freq = 8363 * 2^(((note&lt;&lt;7)+pitch)/(12*128) - 4)
+</ul>
+</tr></td></table>
+</td></tr></table>
+<p align=center>
+<a href="http://www.most.kurgan.ru"><img src=img/most88x31.gif width=88 height=31 border=0 alt="MOST"></a>
+<a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=9685" width="88" height="31" border="0" alt="SourceForge Logo"></a>
+<br>
+<img src=img/delim.jpg width=640 height=16 border=0 alt=""></p>
+</body>
+</html>

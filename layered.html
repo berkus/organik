@@ -1,0 +1,40 @@
+<html>
+<head><title>ORGANIK - ** layered instruments **</title></head>
+
+<body bgcolor=#99ccff>
+<table width="100%" border=0 cellpadding=0 cellspacing=0>
+<tr>
+<td valign=top><img width=40 border=0 src=img/smallogo.jpg alt=""></td>
+<td>
+<h2>Layered instruments</h2>
+<h4>Revision: 2000.04.04 14:25 GMT+5</h4>
+<br>
+For those of you who have already seen Reaktor - its similiar to its concept of
+separate blocks (inputs/generators/filters/etc)...<br>
+<br>
+The main idea is to create instruments from those blocks. Even sample-based
+instruments will be built out of such blocks.<br>
+<br>
+Blocks are divided into two types - instrument and sample processing blocks.
+Instrument processing blocks operate on instrument-related entities such as
+note, pitch, volume, velocity and panning. One of such blocks may be "note-pass
+selector": it inputs a note issued by instrument track, checks it against
+internal note mapping table and routes to appropriate sample output block,
+which in turn plays some sample. This is emulation of usual note-sample mapping
+table. But output of note-pass may be for example routed to pitch-pass selector
+which will select an output based on pitch of the note. This architecture
+allows us to create extremely sophisticated layers without writing any
+scripts.<br>
+<br>
+Advantages:<br>
+- easy creating of any layering algorithm<br>
+- created hierarchy of blocks can be compiled for in-line execution without
+loss for table traversing<br>
+</td></tr></table>
+<p align=center>
+<a href="http://www.most.kurgan.ru"><img src=img/most88x31.gif width=88 height=31 border=0 alt="MOST"></a>
+<A href="http://sourceforge.net"><IMG src="http://sourceforge.net/sflogo.php?group_id=9685" width="88" height="31" border="0" alt="SourceForge Logo"></A>
+<br>
+<img src=img/delim.jpg width=640 height=16 border=0 alt=""></p>
+</body>
+</html>

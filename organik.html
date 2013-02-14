@@ -1,0 +1,224 @@
+<html>
+
+<head><title>ORGANIK - ** programmer reference documentation **</title></head>
+
+<body bgcolor=#99ccff>
+<table width="100%" border=0 cellpadding=0 cellspacing=0>
+<tr>
+<td valign=top><img width=40 border=0 src=img/smallogo.jpg alt=""></td>
+<td>
+<h2>Programmer reference documentation</h2>
+<h4>Version 1.3 dated July, 20 2000</h4>
+<!-- contents -->
+<h2>Some general statements</h2>
+<ul>
+   <li>The name of project is Organik.
+   <li>Organik is being developed independent of the underlying platform.
+   <li>The product will be licensed open source under terms of <a href="The Artistic License.html">The Artistic License</a>.
+   <li>Basic format on which the program will operate and in which the
+       program will save objects (songs, instruments, etc.) is neomod.
+   <li>neomod will be used for storing both songs and object libraries.
+   <li>neomod file can be in one of two stages: development and release.
+       While you are editing it within program it is considered in
+       development stage. After you issue Deploy command, the module is
+       deployed to release stage.
+</ul>
+<h2>Proposed playback features</h2>
+<ul>
+   <li>8/16 (24/32) bits sample support</li>
+   <li>Realtime 16 (24/32) bit sample synthesis</li>
+   <li>Voice position representation in 3D space</li>
+   <li>8/16 bit mono/stereo/3d output support</li>
+   <li>Primitive integer/linterp mixing</li>
+   <li>Standard MMX/cinterp mixing</li>
+   <li>Quality FPU/3Dnow!/SSE, cinterp, per-sampel envelope processing mixing</li>
+</ul>
+<!-- general structure concept of tracker -->
+<h2>Componential tracker structure concept</h2>
+System consists of layers, each of which is maximally isolated from another
+and interacts only thru interfaces. Some classes may spread across several
+layers though.<br>
+
+<!-- hierarchy picture: source hier1.sdr (SmartDraw3) -->
+<center><img src="img/layers_diagram.gif" alt="Organik layers hierarchy"></center><br>
+
+<h2>Layers</h2>
+<h3>UIL - User Interface Layer</h3>
+<ol type=disc>
+   <li>OS DEPENDENT
+   <li>HARDWARE INDEPENDENT
+</ol>
+<ul>
+   <li>user interaction
+   <li>display and modification of parameters in engine/fs/pd layers
+</ul>
+
+There should be Displaying class responsible for drawing gathered analysis info
+on the screen and only when there is enough time for it. ScreenFreeze feature
+stops displaying when system is running out of CPU power.<br>
+<br>
+class Displaying - used for displaying engine running parameters, such as
+   waveforms of played voices, volume bars, fft spectrum, track positions...<br>
+<br>
+Button, Dropdown, Checkbox, RadioCluster, InputLine<br>
+Layout, Adjustment - for placing visual elements<br>
+Window, Dialog - overall containers<br>
+<br>
+TrackView - a visual counterpart to a track<br>
+EnvelopeView etc...<br>
+
+<h3>MOL - Musik Objects Layer</h3>
+<ol type=disc>
+   <li>OS INDEPENDENT
+   <li>HARDWARE INDEPENDENT
+</ol>
+<ul>
+   <li>tracks playing
+   <li>instruments layering
+   <li>samples mixing
+   <li>effect processing
+</ul>
+
+<h3>OSRL - Object Storage and Retrieval Layer</h3>
+<ol type=disc>
+   <li>OS DEPENDENT
+   <li>HARDWARE INDEPENDENT
+</ol>
+<ul>
+   <li>load/save neomod resources
+   <li>load/save different external formats
+   <li>support local/network filesystems
+   <li>maintain links database
+</ul>
+
+<h4>Streaming I/O</h4>
+1. File &<b>&lt;classname&gt;</b>::load(File &is)<br>
+Load <b>&lt;classname&gt;</b> from File <b>is</b> and return File stream.<br>
+<br>
+2. File &<b>&lt;classname&gt;</b>::save(File &os)<br>
+Save <b>&lt;classname&gt;</b> to File <b>os</b> and return File stream.<br>
+<br>
+
+<h3>SDL - Sound Driver Layer</h3>
+<ol type=disc>
+   <li>OS DEPENDENT
+   <li>HARDWARE DEPENDENT
+</ol>
+<ul>
+   <li>sample playback
+   <li>input sampling
+   <li>optional hardware support (thru APIs such as EAX/A3D/etc)
+</ul>
+
+<h3>Playback diagram</h3>
+<center><img src="img/playback_diagram.gif" alt="Playback diagram"></center><br>
+
+<h2>Classes details</h2>
+<h3>Voice</h3>
+Each voice consists of two MonoVoices, which provide an internal representation
+for a single mono sample. In stereo samples, "left" and "right"
+(of type MonoVoice) point at different samples locations in memory. In case of
+a mono sample, they point at same data in memory but may contain different
+looping/volume/etc information.<br>
+Panning is always an amount of left and right sampels in output signal...
+
+<h2>A note on sideways design</h2>
+Design both top and bottom levels.<br>
+<br>
+Top: GUI/user interaction<br>
+Bottom: stream audio playback drivers<br>
+
+<h2>Notes</h2>
+<ol type=disc>
+   <li>Effectslots hold some (user) pre-defined effects and can be easily and
+   quickly accessed from within a track. Command CMD_EFFECTSLOT activates
+   or disables effect allocated in a given slot for a particular note.
+
+   <li>All buffer sizes are in sampel vectors
+   (they cover both buffer bitness and the number of channels).
+   For example to calculate length of a stereo 16-bit buffer in bytes
+   one has to multiply such size by 4.
+
+   <li>Tick frequency is constant and is 250 ticks/second
+
+   <li>Add spline interpolation to envelopes
+
+   <li>Раз на 1 TU для голоса устанавливаются параметры freq, pan, vol
+   на: начало предыдущего такта, начало текущего такта, конец текущего такта и
+   конец следущего такта для spline-интерполяции.
+   <pre>
+   |     |       |    |
+   ¦.    |текущий|    |
+   | \_  | такт  |    |
+   |   \ |    _. ¦.   |
+   |    `¦ ._-   | \  |
+   |     |       |  '-¦
+   |     |       |    |
+   </pre>
+   Пересчет огибающих нужно оптимизировать вплоть до перехода на команды
+   сложения в пределах 2 точек огибающей.
+
+   <li>Отторгнуть песню (Deploy): записать все сэмплы, треки, ордеры, информацию
+   в один файл для распространения вне оригинальной среды.<br>
+   <br>
+   При редактировании вся информация о нотах, расположении треков и comment
+   сохраняются, а сэмплы/инструменты остаются в библиотеке с уникальным ID.
+   (меньше модуль, легче поиск и замена инструментов, также сохраняется
+   информация об undo, состояния редакторов и т.п.)
+
+   <li>Доступ к командной строке - getopt_long из GNU libiberty
+
+   <li>Частота двух соседних нот имеет соотношение 1 к 2^(1/12).
+
+   <li>Stereo<br>
+   <br>
+   Sample editor:<br>
+   <pre>
+   [ ] Stereo separation (Phaseshift) [xxxxx] sampels + ручка на окне сэмпла
+   [ ] Reverse stereo
+   [ ] Surround (Usual phase inversion)</pre>
+   Numerical addresses of loop start and end points (editable).
+
+   <li>Sample Offset<br>
+   a) Percentage, 0..100% <=> 0..4096<br>
+   b) Percentage via envelope<br>
+   c) Usual multiplied<br>
+   d) Multiplied via envelope<br>
+   e) Set multiplier<br>
+   f) Set multiplier via envelope<br>
+
+</ol>
+
+<h2>Глоссарий</h2>
+<dl>
+   <li><dt>channel<dd>канал
+   <li><dt>voice<dd>голос, object capable of playing individual samples,
+       automatically allocated with <nobr>NoteOn()</nobr> command.
+   <li><dt>track<dd>дорожка
+   <li><dt>finetune<dd>точная настройка
+   <li><dt>transpose<dd>транспонирование
+   <li><dt>envelope<dd>огибающая
+   <li><dt>sample<dd>waveform, representation of a particular sound.
+   <li><dt>sampel<dd>sample element, one value.
+   <li><dt>note<dd>corresponds to a specific frequency <nobr>(0..126, 0=C-0, 126=C#10).</nobr>
+   <li><dt>pitch<dd>sub-note accuracy (128 frequency levels between 2 notes).
+   <li><dt>volume<dd>sampel multiplication factor.
+   <li><dt>position<dd>2D vector (panning, elevation). Interpretation depends
+       on type of mixing routines.
+   <li><dt>panning<dd>horizontal position, from leftmost thru center to rightmost.
+   <li><dt>elevation<dd>vertical angle, rotation around panning axis.
+</dl>
+<br>
+<h2>Unsorted stuff in text format</h2>
+<a href="notes">Notes text file (86 Kilos)</a><br>
+<br>
+<a href="sync">Syncronisation thoughts</a><br>
+<br>
+</td></tr></table>
+<p align=center>
+<a href="http://www.most.kurgan.ru"><img src=img/most88x31.gif width=88 height=31 border=0 alt="MOST"></a>
+<A href="http://sourceforge.net"><IMG src="http://sourceforge.net/sflogo.php?group_id=9685" width="88" height="31" border="0" alt="SourceForge Logo"></A>
+<br>
+<img src=img/delim.jpg width=640 height=16 border=0 alt=""></p>
+</body>
+</html>

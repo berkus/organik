@@ -1,0 +1,635 @@
+<html>
+<head><title>ORGANIK - ** neomod file format **</title></head>
+
+<body bgcolor=#99ccff>
+<table width="100%" border=0 cellpadding=0 cellspacing=0>
+<tr>
+<td valign=top><img width=40 border=0 src=img/smallogo.jpg alt=""></td>
+<td>
+<h2>Neomod file format</h2>
+<h4>Revision: 2000.03.10 00:07 GMT+5</h4>
+<br>
+<table width="100%" border="0" cellpadding="2" cellspacing="0">
+<tr>
+   <td bgcolor=#A0A0F0>How data in file is organised</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   File format is chunked. Just as Amiga AIFF or similar formats. Chunks form
+   a hierarchy tree:
+   <ul>
+   <li><a href="#NMOD">NMOD</a>
+      <ul>
+      <li><a href="#INST">INST</a>
+      <li><a href="#SAMP">SAMP</a>
+      <li><a href="#ENVL">ENVL</a>
+         <ul>
+         <li><a href="#EDIM">EDIM</a>
+         </ul>
+      <li><a href="#EFCT">EFCT</a>
+         <ul>
+         <li>subchunks possible
+         </ul>
+      <li><a href="#TEXT">TEXT</a>
+         <ul>
+         <li><a href="#INAM">INAM</a>
+         <li><a href="#SNAM">SNAM</a>
+         <li><a href="#ENAM">ENAM</a>
+         <li><a href="#FNAM">FNAM</a>
+         <li><a href="#CTXT">CTXT</a>
+         </ul>
+      <li><a href="#SONG">SONG</a>
+         <ul>
+         <li><a href="#TRAK">TRAK</a>
+         <li><a href="#TEXT">TEXT</a>
+            <ul>
+            <li><a href="#TNAM">TNAM</a>
+            <li><a href="#CTXT">CTXT</a>
+            </ul>
+         </ul>
+      </ul>
+   </ul>
+   Here is a short description of what each chunk is/for:<br>
+   <br>
+   <center>
+   <table width="90%" cellpadding="2" cellspacing="0" border="1">
+   <tr>
+   <td class=fdesc align=center>Chunk</td>
+   <td class=fdesc align=center>Parent</td>
+   <td class=fdesc align=center>Info</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#NMOD">NMOD</a></td>
+   <td align=center>-</td>
+   <td>Overall incorporating chunk.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#SONG">SONG</a></td>
+   <td align=center>NMOD</td>
+   <td>Arbitrary song. There can be many songs within one module. Each song
+       consists of several tracks and references to instruments, envelopes
+       and effects defined within module file.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#TRAK">TRAK</a></td>
+   <td align=center>SONG</td>
+   <td>Track within a song. Each track defines commands and time
+       when they are to be carried out.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#INST">INST</a></td>
+   <td align=center>NMOD</td>
+   <td>Subsequent instrument. Instruments are global within a module and
+       can be shared between songs (and even other modules!).</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#SAMP">SAMP</a></td>
+   <td align=center>NMOD</td>
+   <td>Subsequent sample. Samples are global within a module and therefore
+       allow several instruments refer to them.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#ENVL">ENVL</a></td>
+   <td align=center>NMOD</td>
+   <td>Subsequent envelope. Each envelope consists of one or several
+       so-called "dimensions".</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#EDIM">EDIM</a></td>
+   <td align=center>ENVL</td>
+   <td>Subsequent envelope dimension. Dimension is actually a set of points,
+       forming the curve, and some additional parameters.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#EFCT">EFCT</a></td>
+   <td align=center>NMOD</td>
+   <td>Subsequent effect.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#TEXT">TEXT</a></td>
+   <td align=center>NMOD, SONG</td>
+   <td>Textual information container.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#CTXT">CTXT</a></td>
+   <td align=center>TEXT</td>
+   <td>Composer textinfo.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#INAM">INAM</a></td>
+   <td align=center>TEXT</td>
+   <td>Instruments names.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#SNAM">SNAM</a></td>
+   <td align=center>TEXT</td>
+   <td>Samples names.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#ENAM">ENAM</a></td>
+   <td align=center>TEXT</td>
+   <td>Envelopes names.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#FNAM">FNAM</a></td>
+   <td align=center>TEXT</td>
+   <td>Effects names.</td>
+   </tr>
+
+   <tr>
+   <td align=center><a href="#TNAM">TNAM</a></td>
+   <td align=center>TEXT</td>
+   <td>Tracks names.</td>
+   </tr>
+
+   </table>
+   </center>
+   <br>
+   </td>
+</tr>
+<tr>
+   <td bgcolor=#A0A0F0>Chunk header.</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   All chunks start with this.<br>
+   <br>
+   <pre>
+struct ChunkHeader {
+   dword   magic;
+   dword   size;
+   Version v;
+   Type    t;
+};</pre>
+   <b>magic</b> is chunk identifier. Its a 32 bit integer, represented
+   in form of 4-letter word such as 'NMOD'.<br>
+   <b>size</b> is the size of the chunk including all subchunks it has
+   except the size of <i>ChunkHeader</i> itself.<br>
+   <b>v</b> is chunk version, it consists of 2 word fields<br>
+   <br>
+   <pre>
+struct Version {
+   word version;
+   word compatible_version;
+};</pre>
+   <b>version</b> is current chunk version.<br>
+   <b>compatible_version</b> is last Organik version its fully compatible with.<br>
+   <br>
+   <b>t</b> consists of 2 byte fields<br>
+   <br>
+   <pre>
+struct Type {
+   byte type;
+   byte subtype;
+};</pre>
+   <b>type</b> is chunk sub-type. Its depends on chunk identifier (type)
+   and usually used to separate little different forms of chunks of one
+   type (see <a href="#SAMP">SAMP</a> chunk for example).<br>
+   <b>subtype</b> is sub-type's subtype. May be used for much finer
+   distinction between chunks or as flags field.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <td bgcolor=#A0A0F0>Library identification.</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   This field is used in many chunks that can be loaded/referenced from other
+   modules.<br>
+   <br>
+   <pre>
+struct LibID {
+   dword uid;
+   dword crc;
+};</pre>
+   <b>uid</b> is unique identifier. It may be unique within one module only.
+   We do not make it globally unique because it might require use of something
+   like GUIDs which of course sucks.<br>
+   <b>crc</b> is CRC32 of chunk's data. Used to check out if the chunks
+   loaded are actually the same.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="NMOD"></a>
+   <td bgcolor=#A0A0F0>NMOD - The incorporating chunk of the module</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkModule {
+   ChunkHeader h; // ('NMOD', size, {ver, 0x0100}, {0, 0})
+   byte entire_module[size];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="SONG"></a>
+   <td bgcolor=#A0A0F0>SONG - Song description</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkSong {
+   ChunkHeader h; // ('SONG', size, {ver, 0x0100}, {0, 0})
+   LibID lib_id;
+   word  num_env;
+   word  envs[num_env];
+   word  num_fx;
+   word  fx[num_fx];
+   byte  subchunks[size-12-num_env*2-num_fx*2];
+};</pre>
+   <b>num_env</b> defines amount of envelopes used in this song.<br>
+   <b>envs</b> is a list of envelopes numbers.<br>
+   <b>num_fx</b> and <b>fx</b> are the same as above but for effects
+   used in song.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="TRAK"></a>
+   <td bgcolor=#A0A0F0>TRAK - Track</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkTrack {
+   ChunkHeader h; // ('TRAK', size, {ver, 0x0100}, {0, 0})
+   LibID lib_id;
+   word  instrument;
+   dword restart_time;
+   byte  stream[size-14];
+};</pre>
+   <b>instrument</b> is number of instrument this track is played with.<br>
+   <b>restart_time</b> defines at which tick track should start re-playing if
+   looped.<br>
+   <b>stream</b> is bytestream consisting of notes, commands, and time code.
+   see <a href="bytestream.html">bytestream format</a>.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="INST"></a>
+   <td bgcolor=#A0A0F0>INST - Instrument</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkInstrument {
+   ChunkHeader h; // ('INST',size,{ver,0x0100},{0,0})
+   word vol_env;
+   word pitch_env;
+   word pos_env;
+   word mod_env;
+   word fadeout;
+};</pre>
+   <b>vol_env</b>, <b>pitch_env</b>, <b>pos_env</b>, <b>mod_env</b> are
+   numbers of used envelopes.<br>
+   <b>fadeout</b> defines sample fadeout speed.
+   It actually can be a property of sample...<br>
+   <br>
+   The fields for sample layering support are missed. I did not include them
+   because details about them are not throughly thought and are incomplete.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="SAMP"></a>
+   <td bgcolor=#A0A0F0>SAMP - Sample</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   There are 4 types of samples: usual waveform sample, externally stored
+   sample, realtime-generated sample and preset-generated sample.<br>
+   <br>
+   <pre>
+struct ChunkNormSample {
+   ChunkHeader h; // ('SAMP',size,{ver,0x0100},{0,0})
+   LibID lib_id;
+   word  volume;
+   word  stereo_separation;
+   byte  finetune;
+   byte  transpose;
+   dword length;
+   dword sustain_loop_start;
+   dword sustain_loop_end;
+   dword decay_loop_start;
+   dword decay_loop_end;
+   byte  riffwavechunk[size-34];
+};</pre>
+   <b>volume</b> is default sample volume.<br>
+   <b>stereo_separation</b> is number of samples between start of left and
+   right channels playback. More on this later.<br>
+   <b>finetune</b> is pitch adjust. Range is -128..127. 128 is one
+   halftone.<br>
+   <b>transpose</b> is relative note. Range is -127..126. 0 means that
+   C-4 = C-4.<br>
+   <b>length</b> is sample length in sampels.<br>
+   <b>sustain_loop_start</b> and <b>sustain_loop_end</b> are sampel offsets
+   of sustain loop start and end points. If loop end point is 0xFFFFFFFF then
+   there is no loop exist.<br>
+   <b>decay_loop_start</b> and <b>decay_loop_end</b> are the same as above but
+   for decay loop.<br>
+   <b>riffwavechunk</b> - sampledata is stored in usual Microsoft RIFF WAVE
+   chunk. The 'RIFF' header is of course cut-off, since it is only a
+   container and samplelength is determined via <i>length</i>.<br>
+   <br>
+   <pre>
+struct ChunkExtnSample {
+   ChunkHeader h;  // ('SAMP',size,{ver,0x0100},{1,0})
+   LibID lib_id;
+   pstr  filename;
+};</pre>
+   <b>lib_id</b> determines library ID code of sample to load.<br>
+   <b>filename</b> is the name of library file to load from.<br>
+   <br>
+   <pre>
+struct ChunkGenrSample {
+   ChunkHeader h; // ('SAMP',size,{ver,0x0100},{2,0})
+   LibID lib_id;
+};</pre>
+   This chunk describes realtime generator sample. Such sample is capable of
+   generating necessary waveform depending on frequency, volume and position
+   parameters in realtime.<br>
+   Its format is not exactly defined yet. If you have something to suggest,
+   do it!<br>
+   Actually, <i>Agent Orange</i> wanted to help, but I don't have contact with
+   him now. The idea behind these samples is much like in his Orangator
+   software synthesizer.<br>
+   <br>
+   <pre>
+struct ChunkGensSample {
+   ChunkHeader h; // ('SAMP', size, {ver, 0x0100}, {3, 0})
+   LibID lib_id;
+};</pre>
+   This is sample generator. It works much like previous one and it will have
+   the same structure I presume. But it generates sample waveform not in
+   realtime but upon loading or while it is being edited.<br>
+   I actually dunno if this may be useful for any kind of sample that will
+   be played back, but it is obviously useful for generating vibrato/tremolo
+   waveforms and similiar stuff.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="ENVL"></a>
+   <td bgcolor=#A0A0F0>ENVL - Envelope</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkEnvelope {
+   ChunkHeader h; // ('ENVL',size,{ver,0x0100},{0,0})
+   LibID            lib_id;
+   word             num_dims;
+   ChunkEnvelopeDim dimensions[num_dims];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="EDIM"></a>
+   <td bgcolor=#A0A0F0>EDIM - Envelope dimension</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkEnvelopeDim {
+   ChunkHeader h; // ('EDIM',size,{ver,0x0100},{0,0})
+   word num_points;
+   word sustain_loop_start;
+   word sustain_loop_end;
+   word decay_loop_start;
+   word decay_loop_end;
+   ChunkEnvelopePoint points[num_points];
+};</pre>
+   <b>num_points</b> is number of points that form a particular curve.<br>
+   <b>sustain_loop_start</b> and <b>sustain_loop_end</b> define <i>tick</i>
+   positions of loop points. If loop end point is 0xFFFF there is no loop
+   at all.<br>
+   <b>decay_loop_start</b> and <b>decay_loop_end</b> are the same as above but
+   for decay loop.<br>
+   <br>
+   <pre>
+struct ChunkEnvelopePoint {
+   word pos;
+   word val;
+   byte curve;
+   byte variation;
+   byte period;
+   word amp;
+};</pre>
+   <b>pos</b> is point's tick position.<br>
+   <b>val</b> is value at pos.<br>
+   <b>curve</b> is curve type between this and next points. May be a line
+   or a Catmull-Rom spline.<br>
+   <b>variation</b> is type of variation added to curve between
+   this and next points. Can be absent, sine, square, rampup, rampdown.<br>
+   <b>period</b> is variation period.<br>
+   <b>amp</b> is variation amplitude at this point. Amplitude is linear
+   interpolated between points.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="EFCT"></a>
+   <td bgcolor=#A0A0F0>EFCT - Effect</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkEffect {
+   ChunkHeader h; // ('EFCT',size,{ver,0x0100},{?,?})
+   LibID lib_id;
+};</pre>
+   There are no exactly defined effect structures yet, though we have a
+   preliminary definitions for Echo/Reverb/Chorus/Flanger,
+   Distortion/Gating/Compressor and Equalizer.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="TEXT"></a>
+   <td bgcolor=#A0A0F0>TEXT - Composer's information</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   This is simply container chunk for all chunks related to textual
+   descriptions of song's instruments, samples etc.<br>
+   <br>
+   <pre>
+struct ChunkTextinfo {
+   ChunkHeader h; // ('TEXT',size,{ver,0x0100},{0,0})
+   byte subchunks[size];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="INAM"></a>
+   <td bgcolor=#A0A0F0>INAM - Instruments names</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   This chunk contains names for instruments held in a module file. There
+   may be multiple INAM chunks each describing subsequent bunches of
+   instruments.<br>
+   <br>
+   <pre>
+struct ChunkInstrumentNames {
+   ChunkHeader h; // ('INAM',size,{ver,0x0100},{0,0})
+   word start_ins;
+   word num_ins;
+   pstr names[num_ins];
+};</pre>
+   <b>start_ins</b> is from which instrument number within file.<br>
+   <b>num_ins</b> is for how many instruments.<br>
+   <b>names</b> are instruments names.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="SNAM"></a>
+   <td bgcolor=#A0A0F0>SNAM - Samples names</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   The same as above but for samples.<br>
+   <br>
+   <pre>
+struct ChunkSampleNames {
+   ChunkHeader h; // ('SNAM',size,{ver,0x0100},{0,0})
+   word start_samp;
+   word num_samps;
+   pstr names[num_samps];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="ENAM"></a>
+   <td bgcolor=#A0A0F0>ENAM - Envelopes names</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkEnvelopeNames {
+   ChunkHeader h; // ('ENAM',size,{ver,0x0100},{0,0})
+   word start_env;
+   word num_envs;
+   pstr names[num_envs];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="FNAM"></a>
+   <td bgcolor=#A0A0F0>FNAM - Effects names</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkEffectNames {
+   ChunkHeader h; // ('FNAM',size,{ver,0x0100},{0,0})
+   word start_fx;
+   word num_fxs;
+   pstr names[num_fxs];
+};</pre>
+   </td>
+</tr>
+<tr>
+   <a name="TNAM"></a>
+   <td bgcolor=#A0A0F0>TNAM - Tracks names</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   <pre>
+struct ChunkTrackNames {
+   ChunkHeader h; // ('TNAM',size,{ver,0x0100},{0,0})
+   word start_track;
+   word num_tracks;
+   pstr names[num_tracks];
+};</pre>
+   <b>start_track</b> is from which track number within arbitrary song.<br>
+   <br>
+   </td>
+</tr>
+<tr>
+   <a name="CTXT"></a>
+   <td bgcolor=#A0A0F0>CTXT - Composer's text</td>
+</tr>
+<tr>
+   <td>
+   <br>
+   There are two types of composer texts depending on the parent chunk of
+   CTXT subchunk: global (parent is NMOD), which may for example
+   describe entire musikdisk and local (parent is SONG), which describes
+   arbitrary song.
+   <br>
+   <pre>
+struct ChunkComposerText {
+   ChunkHeader h; // ('CTXT',size,{ver,0x0100},{0,0})
+   word length;
+   pstr song_name;
+   pstr album_name;
+   pstr composer_name;
+   pstr genre;
+   pstr tracker_program_name;
+   word text[length];
+};</pre>
+   <b>length</b> is the length of composer's text.<br>
+   <b>song_name</b> is the name of particular song within a module.<br>
+   <b>album_name</b> is the name of album. One module is usually one album.<br>
+   <b>composer_name</b> is obviously composer's name/nick.<br>
+   <b>genre</b> is the genre of song/album.<br>
+   <b>tracker_program_name</b> is the name of tracker program used to
+   produce the module/song.<br>
+   <b>text</b> is composer's text in UNICODE.
+   Some of ANSI gfx codes are allowed for coloring/positioning.<br>
+   <br>
+   Usually, global CTXT chunk has author, tracker, genre and album
+   fields set, to simplify navigating in modules (since this info is displayed
+   in fileselector).<br>
+   <br>
+   pstr strings might be in UNICODE also. This will ease localisation etc..
+   (this way text will be pstr also ####)<br>
+   <br>
+   </td>
+</tr>
+</table>
+</td></tr></table>
+<p align=center>
+<a href="http://www.most.kurgan.ru"><img src=img/most88x31.gif width=88 height=31 border=0 alt="MOST"></a>
+<A href="http://sourceforge.net"><IMG src="http://sourceforge.net/sflogo.php?group_id=9685" width="88" height="31" border="0" alt="SourceForge Logo"></A>
+<br>
+<img src=img/delim.jpg width=640 height=16 border=0 alt=""></p>
+</body>
+</html>
